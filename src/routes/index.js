@@ -4,9 +4,8 @@ const router = express.Router();
 const Controller = require("../controllers");
 
 //create a route
-router.get("/home", Controller.kusonimeController.getListupdate);
-//create route query params page?
 router.get("/home/:page", Controller.kusonimeController.getListupdate);
+router.get("/detail/:link", Controller.kusonimeController.getDetail);
 
 //export router
 module.exports = router;
