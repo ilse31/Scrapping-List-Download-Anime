@@ -1,4 +1,4 @@
-const kusonimeController = require("../controllers/kusonime/kusonimeController.js");
+const kusonimeController = require("../controllers/kusonime/kusonimeController");
 
 module.exports = {
   kusonimeController,
