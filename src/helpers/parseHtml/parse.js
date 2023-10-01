@@ -1,6 +1,20 @@
 const cherio = require("cheerio");
 const request = require("request");
 
+const calculatePage = (html) => {
+  const $ = cherio.load(html);
+  const lastPageLink = $(".wp-pagenavi a.last");
+  const lastPageUrl = lastPageLink.attr("href");
+  const lastPageNumberMatch = lastPageUrl.match(/\/(\d+)\/$/);
+  const lastPage = parseInt(lastPageNumberMatch[1], 10);
+  const currentPageLink = $(".wp-pagenavi span.current");
+  const currentPage = parseInt(currentPageLink.text(), 10);
+  return {
+    lastPage,
+    currentPage,
+  };
+};
+
 const parseListupdate = (html, baseUrl) => {
   const $ = cherio.load(html);
   const data = [];
@@ -32,7 +46,7 @@ const parseListupdate = (html, baseUrl) => {
   return data;
 };
 
-const parseDetail = (html, baseUrl) => {
+const parseDetail = (html) => {
   const $ = cherio.load(html);
   const title = $(".jdlz").text();
   const image = $(".attachment-thumb-large").attr("src");
@@ -44,9 +58,25 @@ const parseDetail = (html, baseUrl) => {
     .text()
     .split(/(?=[A-Z])/)
     .join(",");
-  const status = $(".entry-content p").eq(2).text();
-  const type = $(".entry-content p").eq(3).text();
-  const release = $(".entry-content p").eq(4).text();
+  const status = $(".info")
+    .find("p")
+    .eq(5)
+    .text()
+    .replace("Status:", "")
+    .trim();
+  const totalEps = $(".info")
+    .find("p")
+    .eq(6)
+    .text()
+    .replace("Total Episode:", "")
+    .trim();
+  const type = $(".info").find("p").eq(4).text().replace("Type:", "").trim();
+  const release = $(".info")
+    .find("p")
+    .eq(9)
+    .text()
+    .replace("Released on:", "")
+    .trim();
   const duration = $(".info")
     .find("p")
     .eq(8)
@@ -55,8 +85,27 @@ const parseDetail = (html, baseUrl) => {
     .replace("per ep", "")
     .replace(/(:|\.)/g, "")
     .trim();
-  const score = $(".entry-content p").eq(6).text();
-  const sinopsis = $(".entry-content p").eq(7).text();
+  const score = $(".info").find("p").eq(7).text().replace("Score:", "").trim();
+  const sinopsis = $(".lexot > p").text().trim();
+  let ListDownload = [];
+  $("#dl")
+    .find(".smokeddlrh")
+    .each((i, el) => {
+      const download_link = [];
+      $(".smokeurlrh").each((j, ele) => {
+        const type = $(ele).find("strong").text().trim();
+        const links = [];
+        $(ele)
+          .find("a")
+          .each((k, elem) => {
+            const name = $(elem).text().trim();
+            const url = $(elem).attr("href");
+            links.push({ name, url });
+          });
+        download_link.push({ type, links });
+      });
+      ListDownload.push({ title, download_link });
+    });
 
   return {
     title,
@@ -64,15 +113,18 @@ const parseDetail = (html, baseUrl) => {
     genre,
     viewed,
     status,
+    totalEps,
     type,
     release,
     duration,
     score,
     sinopsis,
+    ListDownload,
   };
 };
 
 module.exports = {
   parseDetail,
   parseListupdate,
+  calculatePage,
 };

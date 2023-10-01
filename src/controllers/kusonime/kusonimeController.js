@@ -8,7 +8,12 @@ const getListupdate = async (req, res) => {
   try {
     const html = await fetch.fetchHtml(url);
     const data = parse.parseListupdate(html, baseUrl);
-    response.successResponse(res, "Success", data);
+    const { lastPage, currentPage } = parse.calculatePage(html);
+    response.successResponse(res, "Success", {
+      data,
+      lastPage,
+      currentPage,
+    });
   } catch (error) {
     console.log(error);
     response.errorResponse(res, 400, "Bad Request");
@@ -19,10 +24,12 @@ const getDetail = async (req, res) => {
   const url = `${baseUrl}/${req.params.link}`;
 
   try {
-    const html = await fetch(url);
-    const data = parse.parseDetail(html, baseUrl);
+    const html = await fetch.fetchHtml(url);
+    console.log("html", html);
+    const data = parse.parseDetail(html);
     response.successResponse(res, "Success", data);
   } catch (error) {
+    console.log("error", error);
     response.errorResponse(res, 400, "Bad Request");
   }
 };
